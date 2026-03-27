@@ -8,8 +8,9 @@ For this demo, you will need:
 
 * [Python](https://www.python.org/downloads/) (at least 3.12; just use the latest version)
 * [Git](https://git-scm.com/install/)
+  * This is optional, as will be explained later, but for Windows, it's the best solution.
 * And a common shell (such as Bash, which is installed alongside Git for Windows)
-  * For convenience, ensure "Open Git Bash here" is enabled during Git installation
+  * For convenience, ensure "Open Git Bash here" is enabled during Git installation.
 
 The demo has been configured to work without any additional Python packages.
 
@@ -21,6 +22,8 @@ The demo has been configured to work without any additional Python packages.
    ```bash
    git clone https://github.com/toby-reid/cs-5620_final-project.git
    ```
+   1. Alternatively, if you don't have Git, you can navigate to that URL in a web browser, select **Code**, and select **Download ZIP**.
+      Extract the compressed folder, then open the directory in Git Bash as above.
 1. Move into the cloned repository folder:
    ```bash
    cd cs-5620_final-project

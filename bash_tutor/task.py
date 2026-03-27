@@ -2,7 +2,10 @@
 
 import json
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Optional
+
+from .utils import ENCODING
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -24,11 +27,15 @@ class Task:
             print(f"Invalid JSON task provided: {object}")
             return None
 
+    def evaluate(student_command: list[str]) -> bool:
+        """TODO"""
 
-def load_tasks(tasks_file: str) -> list[Task]:
+
+
+def load_tasks(tasks_file: Path) -> list[Task]:
     """TODO"""
 
-    with open(tasks_file, 'r', encoding="utf-8") as file:
+    with tasks_file.open('r', encoding=ENCODING) as file:
         # Again, skip validation for the sake of time
         tasks_json: list[dict[str, Any]] = json.load(file)
     tasks = [Task.from_json(task) for task in tasks_json]

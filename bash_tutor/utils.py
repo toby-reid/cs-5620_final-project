@@ -9,3 +9,6 @@ RESOURCES_DIR = REPO_DIR / "resources"
 TASKS_JSON = RESOURCES_DIR / "tasks.json"
 
 WORKSPACE_DIR = REPO_DIR / "workspace"
+
+
+ENCODING = "utf-8"
