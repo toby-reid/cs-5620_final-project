@@ -1,0 +1,15 @@
+[
+  {
+    "name": "basic-ls",
+    "prompt": "List all files within the current working directory.",
+    "hints": [
+      "There's a single command you can use to list files in a directory.",
+      "The single command does not require any additional flags or arguments.",
+      "'ls' (for \"list\") can list all files in a directory.",
+      "Type 'ls' (and nothing more) to list all files in the current directory."
+    ],
+    "solution": [
+      ["ls"]
+    ]
+  }
+]
