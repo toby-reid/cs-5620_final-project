@@ -1,2 +1,5 @@
-# cs-5620_final-project
-Final project for CS 5620, AI in Education.
+# Final Project
+
+*for CS 5620, AI in Education, at Utah State University.*
+
+
