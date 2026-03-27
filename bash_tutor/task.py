@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
 
+from .skill import Skill
 from .utils import ENCODING
 
 
@@ -13,9 +14,11 @@ class Task:
     """TODO"""
 
     name: str
+    skill: Skill  # will actually be a str, but it's fine (probably)
     prompt: str
     hints: list[str]
     solution: list[list[str]]
+    command_limit: Optional[int] = None
 
     @staticmethod
     def from_json(object: dict[str, Any]) -> Optional["Task"]:
