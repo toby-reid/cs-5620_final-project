@@ -2,37 +2,69 @@
 
 import json
 from dataclasses import dataclass
+from enum import StrEnum, auto
 from pathlib import Path
 from typing import Any, Optional
 
 from .skill import Skill
-from .utils import ENCODING
+from .utils import ENCODING, CommandResult, FileSystem, run_command
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class Task:
     """TODO"""
 
+    class ResultCheck(StrEnum):
+        """TODO"""
+        STDOUT = auto()
+        STDERR = auto()
+        EXACT_COMMAND = auto()
+        FILE_SYSTEM = auto()
+
+    @dataclass(slots=True, kw_only=True)
+    class Result:
+        """TODO"""
+        stdout: Optional[str] = None
+        stderr: Optional[str] = None
+        commands: Optional[list[list[str]]] = None
+        fs: Optional[FileSystem] = None
+
     name: str
-    skill: Skill  # will actually be a str, but it's fine (probably)
     prompt: str
     hints: list[str]
     solution: list[list[str]]
+    result_checks: list[ResultCheck] = list(ResultCheck)  # will be str, not enum
+    skills: Optional[list[Skill]] = None  # will actually be string, not enum
     command_limit: Optional[int] = None
 
-    @staticmethod
-    def from_json(object: dict[str, Any]) -> Optional["Task"]:
+    @classmethod
+    def from_json(cls, object: dict[str, Any]) -> Optional["Task"]:
         """TODO"""
-        # for the sake of demo, we'll skip validation
         try:
+            # Note: this simplistic method will keep strings/ints, not convert to enum
             return Task(**object)
-        except TypeError:
-            print(f"Invalid JSON task provided: {object}")
+        except TypeError as e:
+            print(f"Invalid JSON task provided: {object}\n  ({e})")
             return None
 
-    def evaluate(student_command: list[str]) -> bool:
+    def evaluate(self, start_dir: Path) -> Result:
         """TODO"""
-
+        cmd_results: list[CommandResult] = []
+        cwd = start_dir
+        for command in self.solution:
+            cmd_result = run_command(command, cwd=cwd)
+            cmd_results.append(cmd_result)
+            cwd = cmd_result.new_cwd
+        result = Task.Result()
+        if Task.ResultCheck.STDOUT in self.result_checks:
+            result.stdout = cmd_results[-1].stdout
+        if Task.ResultCheck.STDERR in self.result_checks:
+            result.stderr = cmd_results[-1].stderr
+        if Task.ResultCheck.EXACT_COMMAND in self.result_checks:
+            result.commands = self.solution
+        if Task.ResultCheck.FILE_SYSTEM in self.result_checks:
+            result.fs = FileSystem.from_fs(start_dir)
+        return result
 
 
 def load_tasks(tasks_file: Path) -> list[Task]:

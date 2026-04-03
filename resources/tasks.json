@@ -1,7 +1,6 @@
 [
   {
     "name": "basic-ls",
-    "skill": "ls",
     "prompt": "List all files within the current working directory.",
     "hints": [
       "There's a single command you can use to list files in a directory.",
@@ -11,6 +10,10 @@
     ],
     "solution": [
       ["ls"]
-    ]
+    ],
+    "check_results": [
+      "stdout"
+    ],
+    "command_limit": 1
   }
 ]
