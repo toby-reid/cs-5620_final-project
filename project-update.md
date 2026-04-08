@@ -17,9 +17,9 @@ So what I've been able to create thus far is that exact wrapper, plus a basic ta
 A couple of Python classes and functions dictate the entire process.
 
 In essence, the wrapper takes user input (as a list of strings, a single Bash command), ensures it doesn't impact anything outside the given workspace directory (through very simple path checking), adds an extra `pwd` call to the end, and executes the process as a submodule.
-It then uses the last line of output (thanks to `pwd`) to determine the new current working directory, returning all relevant data.
 
 I've even equipped the system to hash an entire directory or other file system to determine what, if anything, has been changed, meaning that `rm` or similar tasks should also be possible.
+The system then uses the last line of output (thanks to `pwd`) to determine the new current working directory, returning all relevant data, including file systems, stdout/stderr, the exact commands executed thus far, etc.
 
 The system is admittedly very limited.
 For example, as it is now, it doesn't prevent things like `$(pwd)/..` to prevent the user from going outside the workspace scope&mdash;in fact, it doesn't check for any variables or subprocesses.  
