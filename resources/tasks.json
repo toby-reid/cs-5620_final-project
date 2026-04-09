@@ -12,7 +12,6 @@
     ],
     "result_checks": [
       "stdout"
-    ],
-    "command_limit": null
+    ]
   }
 }

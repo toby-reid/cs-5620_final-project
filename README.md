@@ -2,23 +2,30 @@
 
 *for CS 5620, AI in Education, at Utah State University.*
 
+> [!Caution]
+> As it turns out, even when invoked from Git Bash, Windows machines will still run Python subprocesses from its native command line.
+> Thus, **this tool is not available for Windows machines**.
+>
+> One alternative is to use a Windows Subsystem for Linux (WSL) distribution to run the tool.
+
 ## Getting Started
 
 For this demo, you will need:
 
-* [Python](https://www.python.org/downloads/) (must be at least 3.12; recommended just use the latest version)
-* [Git](https://git-scm.com/install/)
-* A common shell (such as Git Bash, which is installed alongside Git for Windows)
-  * For convenience, ensure "Open Git Bash here" is enabled during Git installation.
+* Python 3, at least version 3.11
+* Git
+  * For Windows, the Git distribution also provides a Bash-compliant shell.
+* A standard Unix-like shell, such as Bash
+  * This comes as the "Terminal" app in most Linux distributions.
 
 The demo has been configured to work without any additional Python packages.
 
 ## Running the Tool
 
-1. Open Bash into a working directory, such as your `Downloads` folder.
+1. Open a shell into a working directory, such as your `Downloads` folder.
    1. If on Windows with Git Bash, you should be able to right-click the folder in your file explorer and select **Open Git Bash here**.
    1. If on Linux, you should be able to right-click the folder in your file explorer and select **Open in Terminal**.
-1. Paste in the following command using **Shift**+**Enter**:
+1. Clone this Git repository (paste in this command using **Shift**+**Enter** on the keyboard):
    ```bash
    git clone https://github.com/toby-reid/cs-5620_final-project.git
    ```
