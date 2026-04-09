@@ -100,3 +100,8 @@ def run_command(command: Sequence[str | Path], cwd: Optional[Path | str] = None)
         stderr=result.stderr,
         success=(result.returncode == ExitCode.SUCCESS),
     )
+
+
+def reset_workspace(workspace_dir: Path = WORKSPACE_DIR) -> bool:
+    """TODO"""
+    return run_command(("git", "restore", "."), cwd=workspace_dir).success
