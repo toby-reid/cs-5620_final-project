@@ -1,10 +1,10 @@
-"""TODO"""
+"""Contains an engine used for running a task."""
 
 import sys
 from dataclasses import dataclass, field
 from enum import StrEnum, auto
 from pathlib import Path
-from typing import Callable, Optional, Sequence
+from typing import Optional, Sequence
 
 from .task import Task
 from .utils import FileSystem, reset_workspace, run_command
@@ -12,10 +12,10 @@ from .utils import FileSystem, reset_workspace, run_command
 
 @dataclass(slots=True)
 class TaskEngine:
-    """TODO"""
+    """Engine for running a task."""
 
     class SpecialCommand(StrEnum):
-        """TODO"""
+        """Represents a special command that supercedes Bash commands for the tutor's sake."""
 
         HELP = auto()
         HINT = auto()

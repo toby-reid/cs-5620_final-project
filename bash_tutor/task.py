@@ -1,4 +1,4 @@
-"""TODO"""
+"""Contains the structure for an individual task."""
 
 import json
 from dataclasses import dataclass
@@ -12,10 +12,10 @@ from .utils import ENCODING, CommandResult, FileSystem, run_command
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class Task:
-    """TODO"""
+    """Structure for an individual task."""
 
     class ResultCheck(StrEnum):
-        """TODO"""
+        """Represents one of the checks that can be made to ensure a solution is correct."""
         STDOUT = auto()
         STDERR = auto()
         EXACT_COMMAND = auto()
@@ -23,7 +23,7 @@ class Task:
 
     @dataclass(slots=True, kw_only=True)
     class Result:
-        """TODO"""
+        """Represents the desired results, if that thing should be checked."""
         stdout: Optional[str] = None
         stderr: Optional[str] = None
         commands: Optional[list[list[str]]] = None
@@ -38,17 +38,33 @@ class Task:
     command_limit: Optional[int] = None
 
     @classmethod
-    def from_json(cls, object: dict[str, Any]) -> Optional["Task"]:
-        """TODO"""
+    def from_json[TaskT](cls: type[TaskT], object: dict[str, Any]) -> Optional[TaskT]:
+        """
+        Attempts to generate this object from a JSON-type object.
+
+        Parameters:
+            object (dict[str, Any]): The JSON-like object whose keys match this class's keys
+
+        Returns:
+            instance (TaskT | None): An instance of this class, if the input JSON is valid
+        """
         try:
             # Note: this simplistic method will keep strings/ints, not convert to enum
-            return Task(**object)
+            return cls(**object)
         except TypeError as e:
             print(f"Invalid JSON task provided: {object}\n  ({e})")
             return None
 
     def evaluate(self, start_dir: Path) -> Result:
-        """TODO"""
+        """
+        Determines the desired results for this task, based on the checks that should be made.
+
+        Parameters:
+            start_dir (Path): The directory from which this task will be started
+
+        Returns:
+            result (Result): Desired results for this task
+        """
         cmd_results: list[CommandResult] = []
         cwd = start_dir
         for command in self.solution:
@@ -68,7 +84,15 @@ class Task:
 
 
 def load_tasks(tasks_file: Path) -> list[Task]:
-    """TODO"""
+    """
+    Loads tasks from a given JSON file.
+
+    Parameters:
+        tasks_file (Path): JSON file containing a list of Task-like objects
+
+    Returns:
+        tasks (list[Task]): All valid tasks found in the given file
+    """
 
     with tasks_file.open('r', encoding=ENCODING) as file:
         # Again, skip validation for the sake of time
