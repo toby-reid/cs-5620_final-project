@@ -100,4 +100,5 @@ class Task:
             result.commands = self.solution
         if Task.ResultCheck.FILE_SYSTEM in self.result_checks:
             result.fs = FileSystem.from_fs(start_dir)
+        print(result)
         return result

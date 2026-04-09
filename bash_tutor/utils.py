@@ -22,6 +22,7 @@ HASH_ALG = "sha256"
 
 class ExitCode(IntEnum):
     """Command-line exit code."""
+
     SUCCESS = 0
     BAD_CLI_ARG = 1
 
@@ -114,14 +115,21 @@ def run_command(command: Sequence[str | Path], cwd: Optional[Path | str] = None)
     Returns:
         result (CommandResult): The result from running the given command
     """
+    cwd_key = ":CWD:"
     result = subprocess.run(
-        list(command) + [";", "echo", ";", "pwd"], capture_output=True, cwd=cwd, check=False, text=True
+        f"echo -n $({' '.join(f'"{segment}"' for segment in command)}){cwd_key}$(pwd)",
+        executable="bash",
+        shell=True,
+        capture_output=True,
+        cwd=cwd,
+        check=False,
+        text=True,
     )
-    stdout_split = result.stdout.split('\n')
+    cwd_index = result.stdout.rfind(cwd_key)
     return CommandResult(
         command=command,
-        new_cwd=Path(stdout_split[-1]),
-        stdout='\n'.join(stdout_split[:-1]),
+        new_cwd=Path(result.stdout[cwd_index + len(cwd_key):].strip()),
+        stdout=result.stdout[:cwd_index],
         stderr=result.stderr,
         success=(result.returncode == ExitCode.SUCCESS),
     )
