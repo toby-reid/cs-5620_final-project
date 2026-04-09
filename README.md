@@ -1,6 +1,8 @@
-# Final Project
+# Bash Tutor
 
-*for CS 5620, AI in Education, at Utah State University.*
+*Final project for CS 5620, AI in Education, at Utah State University.*
+
+This is a proof of concept for a constraint-based Bash tutor, based in Python.
 
 > [!Caution]
 > As it turns out, even when invoked from Git Bash, Windows machines will still run Python subprocesses from its native command line.
