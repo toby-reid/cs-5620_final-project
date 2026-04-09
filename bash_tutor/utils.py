@@ -1,4 +1,4 @@
-"""TODO"""
+"""Common utilities for this module."""
 
 import hashlib
 import subprocess
@@ -21,7 +21,7 @@ HASH_ALG = "sha256"
 
 
 class ExitCode(IntEnum):
-    """TODO"""
+    """Command-line exit code."""
     SUCCESS = 0
     FAIL_CODE = 1
     FAIL_USER = 2
@@ -29,7 +29,7 @@ class ExitCode(IntEnum):
 
 @dataclass(frozen=True, slots=True, eq=True)
 class FileSystem:
-    """TODO"""
+    """Represents a file system (either file or directory), including children (if applicable)."""
 
     full_path: Path
     dir_contents: Optional[dict[str, "FileSystem"]] = field(default=None, kw_only=True)
@@ -43,20 +43,36 @@ class FileSystem:
 
     @classmethod
     def from_fs(cls, file_or_dir: Path) -> "FileSystem":
-        """TODO"""
+        """
+        Reads a directory or hashes a file to generate a representation of a fs snapshot.
+
+        Parameters:
+            file_or_dir (Path): The file or directory to read/hash a snapshot
+
+        Returns:
+            fs (FileSystem): A representation of a snapshot of the file or directory
+        """
         if file_or_dir.is_dir():
             dir_contents: dict[str, FileSystem] = {}
             for content in file_or_dir.iterdir():
-                dir_contents[content.name] = FileSystem.from_fs(file_or_dir / content.name)
-            return FileSystem(file_or_dir, dir_contents=dir_contents)
+                dir_contents[content.name] = cls.from_fs(file_or_dir / content.name)
+            return cls(file_or_dir, dir_contents=dir_contents)
         if file_or_dir.is_file():
             with file_or_dir.open("rb") as file:
                 hash = hashlib.file_digest(file, HASH_ALG).digest()
-            return FileSystem(file_or_dir, file_hash=hash)
+            return cls(file_or_dir, file_hash=hash)
         raise TypeError(f"{file_or_dir} is not a valid file or directory")
 
     def find_diff(self, other: Optional["FileSystem"]) -> Optional[str]:
-        """TODO"""
+        """
+        Determines whether two filesystem snapshots differ, and in what way.
+
+        Parameters:
+            other (FileSystem | None): The filesystem to compare against this one
+
+        Returns:
+            diff (str | None): A string representing where the filesystems differ, if at all
+        """
         if other is None:
             return f"Expected path {self.full_path}"
         if self.full_path != other.full_path:
@@ -79,7 +95,7 @@ class FileSystem:
 
 @dataclass(slots=True, kw_only=True)
 class CommandResult:
-    """TODO"""
+    """Represents the result from the running of a subprocess."""
 
     command: Sequence[str | Path]
     new_cwd: Path
@@ -89,7 +105,16 @@ class CommandResult:
 
 
 def run_command(command: Sequence[str | Path], cwd: Optional[Path | str] = None) -> CommandResult:
-    """TODO"""
+    """
+    Runs a given command and determines whether the CWD has changed.
+
+    Parameters:
+        command (Sequence[str | Path]): The command to invoke
+        cwd (Path | str | None): The working directory from which to invoke the given command
+
+    Returns:
+        result (CommandResult): The result from running the given command
+    """
     result = subprocess.run(
         list(command) + [";", "pwd"], capture_output=True, cwd=cwd, check=False, text=True
     )
@@ -103,5 +128,13 @@ def run_command(command: Sequence[str | Path], cwd: Optional[Path | str] = None)
 
 
 def reset_workspace(workspace_dir: Path = WORKSPACE_DIR) -> bool:
-    """TODO"""
+    """
+    Performs a `git restore` on the given workspace directory.
+
+    Parameters:
+        workspace_dir (Path): The directory on which to invoke `git restore`
+
+    Returns:
+        is_successful (bool): Whether restoration was successful
+    """
     return run_command(("git", "restore", "."), cwd=workspace_dir).success

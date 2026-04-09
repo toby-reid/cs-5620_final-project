@@ -129,8 +129,13 @@ class TaskEngine:
             is_complete (bool): Whether all checked results match the desired results
         """
         result = run_command(command, self.cwd)
+        if result.stdout:
+            print(result.stdout)
+        if result.stderr:
+            print(result.stderr)  # send to stdout
         self.cwd = result.new_cwd
         self.attempt_commands.append(list(command))
+
         if self.desired_result.stdout is not None and self.desired_result.stdout != result.stdout:
             return False
         if self.desired_result.stderr is not None and self.desired_result.stderr != result.stderr:
