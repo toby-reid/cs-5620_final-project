@@ -20,6 +20,7 @@ class TaskEngine:
     class SpecialCommand(StrEnum):
         """Represents a special command that supercedes Bash commands for the tutor's sake."""
 
+        TASK = auto()
         HELP = auto()
         HINT = auto()
         SOLUTION = auto()
@@ -69,6 +70,7 @@ class TaskEngine:
         self.cwd = self.start_dir
         reset_workspace(self.start_dir)
         self.attempt_commands = []
+        self._cmd_task()
         if self.task.command_limit is not None and self.task.command_limit <= 0:
             print_color(
                 f"Task requested invalid limit {self.task.command_limit}; aborting", Color.RED
@@ -78,8 +80,11 @@ class TaskEngine:
             self.task.command_limit is None or len(self.attempt_commands) < self.task.command_limit
         ):
             print(
-                f"{color_text("student", Color.BLUE)}:"
-                f"{color_text(f"/{self.start_dir.name / self.cwd.relative_to(self.start_dir)}", Color.GREEN)}"
+                color_text("student", Color.BLUE),
+                color_text(
+                    f"/{self.start_dir.name / self.cwd.relative_to(self.start_dir)}", Color.GREEN
+                ),
+                sep=":",
             )
             # Don't worry about vetting input
             command = input("$ ").split()
@@ -165,6 +170,19 @@ class TaskEngine:
             return False
         return True
 
+    def _cmd_task(self) -> Optional[bool]:
+        """
+        In response to the 'task' command from the user, or as an initial task information.
+
+        Returns:
+            restart_status (bool | None):
+                * `True` if this task is being aborted; i.e., no further attempts should be made
+                * `False` if this task is being restarted; i.e., reset from the task beginning
+                * `None` if this task should continue without restarting
+        """
+        print_color(f"-- Task: {self.task.name} --\n{self.task.prompt}", Color.CYAN)
+        return None
+
     def _cmd_help(self) -> Optional[bool]:
         """
         In response to the 'help' command from the user.
@@ -181,6 +199,7 @@ class TaskEngine:
             "You will be prevented from navigating away from the given workspace directory, "
             "or from using variables and subprocesses, for your safety.\n"
             "In addition to standard Bash commands, the following commands are available:\n"
+            f"  {TaskEngine.SpecialCommand.TASK} - Get task details\n"
             f"  {TaskEngine.SpecialCommand.HELP} - Displays this help message\n"
             f"  {TaskEngine.SpecialCommand.HINT} - Get the next hint for this task, "
             "and restart the current attempt\n"
