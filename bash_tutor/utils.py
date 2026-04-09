@@ -117,7 +117,7 @@ def run_command(command: Sequence[str | Path], cwd: Optional[Path | str] = None)
     """
     cwd_key = ":CWD:"
     result = subprocess.run(
-        f"echo -n $({' '.join(f'"{segment}"' for segment in command)}){cwd_key}$(pwd)",
+        f'echo -n "$({' '.join(f'"{segment}"' for segment in command)})"{cwd_key}"$(pwd)"',
         executable="bash",
         shell=True,
         capture_output=True,

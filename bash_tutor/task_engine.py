@@ -66,9 +66,13 @@ class TaskEngine:
         self.cwd = self.start_dir
         reset_workspace(self.start_dir)
         self.attempt_commands = []
+        if self.task.command_limit is not None and self.task.command_limit <= 0:
+            print(
+                f"Task requested invalid limit {self.task.command_limit}; aborting", file=sys.stderr
+            )
+            return False
         while (
-            self.task.command_limit is None
-            or self.task.command_limit < len(self.attempt_commands)
+            self.task.command_limit is None or len(self.attempt_commands) < self.task.command_limit
         ):
             print(self.cwd)
             # Don't worry about vetting input
