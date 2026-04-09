@@ -1,4 +1,4 @@
-"""TODO"""
+"""Main entrypoint for the bash_tutor."""
 
 import argparse
 import json
@@ -26,7 +26,15 @@ class _ParsedArgs(argparse.Namespace):
 
 
 def main(args: list[str]) -> ExitCode:
-    """TODO"""
+    """
+    Reads tasks from file, then runs various tasks as requested.
+
+    Parameters:
+        args (list[str]): Command-line arguments, *not* including the invoked file/module
+
+    Returns:
+        exit_code (ExitCode): 0 if successful (even if the user failed any task(s))
+    """
     parsed_args = _parse_args(args)
     tasks = _load_tasks(parsed_args.input_json)
     if not tasks:
@@ -56,7 +64,15 @@ def main(args: list[str]) -> ExitCode:
 
 
 def _parse_args(args: list[str]) -> _ParsedArgs:
-    """TODO"""
+    """
+    Parses command-line arguments for this module.
+
+    Parameters:
+        args (list[str]): Command-line arguments, *not* including this file/module name
+
+    Returns:
+        parsed_args (_ParsedArgs): A namespace containing any relevant values
+    """
     parser = argparse.ArgumentParser(
         "bash_tutor",
         description="A proof-of-concept constraint-based Bash tutor.",
@@ -114,7 +130,7 @@ def _load_tasks(tasks_file: Path) -> dict[str, Task]:
         tasks_file (Path): JSON file containing a list of Task-like objects
 
     Returns:
-        tasks (dict[Any, Task]): All valid tasks found in the given file
+        tasks (dict[str, Task]): All valid tasks found in the given file
     """
 
     with tasks_file.open("r", encoding=ENCODING) as file:
@@ -125,9 +141,22 @@ def _load_tasks(tasks_file: Path) -> dict[str, Task]:
 
 
 def _run_task(task: Task, workspace_dir: Path, max_attempts: Optional[int] = None) -> bool:
-    """TODO"""
+    """
+    Runs the given task and provides feedback on whether the user was successful.
+
+    Parameters:
+        task (Task): The task to run
+        workspace_dir (Path): The workspace directory to use when running the task
+        max_attempts (int | None): Maximum number of failures to allow, if setting a limit
+
+    Returns:
+        is_successful (bool): Whether the user successfully completed the given task
+    """
 
     task_engine = TaskEngine(task, workspace_dir)
     is_success = task_engine.run(max_attempts=max_attempts)
     print("Task completed successfully!" if is_success else "Task failed.")
     return is_success
+
+
+sys.exit(main(sys.argv[1:]))
