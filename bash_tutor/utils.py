@@ -3,9 +3,9 @@
 import hashlib
 import subprocess
 from dataclasses import dataclass, field
-from enum import IntEnum
+from enum import IntEnum, StrEnum
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Any, Optional, Sequence
 
 
 REPO_DIR = Path(__file__).parent.parent
@@ -25,6 +25,18 @@ class ExitCode(IntEnum):
 
     SUCCESS = 0
     BAD_CLI_ARG = 1
+
+
+class Color(StrEnum):
+    """Represents a color for console output."""
+
+    RED = "\033[91m"
+    YELLOW = "\033[93m"
+    GREEN = "\033[92m"
+    CYAN = "\033[36m"
+    BLUE = "\033[94m"
+    MAGENTA = "\033[35m"
+    RESET = "\033[0m"
 
 
 @dataclass(frozen=True, slots=True, eq=True)
@@ -104,6 +116,33 @@ class CommandResult:
     success: bool
 
 
+def print_color(text: Any, color: Color | str) -> None:
+    """
+    Prints the given field using the given color.
+
+    Parameters:
+        text (Any): The field to be printed (will be converted by F-strings)
+        color (Color | str): The color to use, or the name of that color
+    """
+    print(color_text(text=text, color=color))
+
+
+def color_text(text: Any, color: Color | str) -> str:
+    """
+    Returns a formatted string that is the given color.
+
+    Parameters:
+        text (Any): The field to be printed (will be converted by F-strings)
+        color (Color | str): The color to use, or the name of that color
+
+    Returns:
+        color_text (str): The given field, formatted for console output with the given color
+    """
+    if not isinstance(color, Color):
+        color = Color(color.upper())
+    return f"{color}{text}{Color.RESET}"
+
+
 def run_command(command: Sequence[str | Path], cwd: Optional[Path | str] = None) -> CommandResult:
     """
     Runs a given command and determines whether the CWD has changed.
@@ -117,8 +156,7 @@ def run_command(command: Sequence[str | Path], cwd: Optional[Path | str] = None)
     """
     cwd_key = ":CWD:"
     result = subprocess.run(
-        f'echo -n "$({' '.join(f'"{segment}"' for segment in command)})"{cwd_key}"$(pwd)"',
-        executable="bash",
+        f'{' '.join(f'"{segment}"' for segment in command)}; echo {cwd_key}"$(pwd)"',
         shell=True,
         capture_output=True,
         cwd=cwd,
@@ -128,7 +166,7 @@ def run_command(command: Sequence[str | Path], cwd: Optional[Path | str] = None)
     cwd_index = result.stdout.rfind(cwd_key)
     return CommandResult(
         command=command,
-        new_cwd=Path(result.stdout[cwd_index + len(cwd_key):].strip()),
+        new_cwd=Path(result.stdout[cwd_index + len(cwd_key) :].strip()),
         stdout=result.stdout[:cwd_index],
         stderr=result.stderr,
         success=(result.returncode == ExitCode.SUCCESS),
@@ -145,4 +183,7 @@ def reset_workspace(workspace_dir: Path = WORKSPACE_DIR) -> bool:
     Returns:
         is_successful (bool): Whether restoration was successful
     """
-    return run_command(("git", "restore", "."), cwd=workspace_dir).success
+    result = subprocess.run(
+        ["git", "restore", "."], cwd=workspace_dir, check=False, capture_output=True
+    )
+    return result.returncode == ExitCode.SUCCESS

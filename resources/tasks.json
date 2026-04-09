@@ -13,6 +13,6 @@
     "result_checks": [
       "stdout"
     ],
-    "command_limit": 1
+    "command_limit": null
   }
 }

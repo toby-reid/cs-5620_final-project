@@ -7,7 +7,10 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 from .task import Task
-from .utils import FileSystem, reset_workspace, run_command
+from .utils import Color, FileSystem, color_text, print_color, reset_workspace, run_command
+
+
+_BANNED_SYMBOLS = ("$", "!", ";")
 
 
 @dataclass(slots=True)
@@ -67,14 +70,17 @@ class TaskEngine:
         reset_workspace(self.start_dir)
         self.attempt_commands = []
         if self.task.command_limit is not None and self.task.command_limit <= 0:
-            print(
-                f"Task requested invalid limit {self.task.command_limit}; aborting", file=sys.stderr
+            print_color(
+                f"Task requested invalid limit {self.task.command_limit}; aborting", Color.RED
             )
             return False
         while (
             self.task.command_limit is None or len(self.attempt_commands) < self.task.command_limit
         ):
-            print(self.cwd)
+            print(
+                f"{color_text("student", Color.BLUE)}:"
+                f"{color_text(f"/{self.start_dir.name / self.cwd.relative_to(self.start_dir)}", Color.GREEN)}"
+            )
             # Don't worry about vetting input
             command = input("$ ").split()
             if len(command) == 1 and command[0] in TaskEngine.SpecialCommand:
@@ -92,6 +98,10 @@ class TaskEngine:
                 continue
             if self._run_command(command):
                 return not self.got_solution
+        print_color(
+            f"Failed to complete task within command limit of {self.task.command_limit}",
+            Color.YELLOW,
+        )
         return None
 
     def _is_safe(self, command: Sequence[str]) -> bool:
@@ -111,16 +121,13 @@ class TaskEngine:
             else:
                 path = (self.cwd / item).resolve()
             if not path.is_relative_to(self.start_dir):
-                print(
+                print_color(
                     f"Suspected path '{item}' goes outside workspace directory; rejecting command",
-                    file=sys.stderr,
+                    Color.MAGENTA,
                 )
                 return False
-        if any("$" in item for item in command):
-            print(
-                "Tutor disallows variables and subprocesses (via $); rejecting command",
-                file=sys.stderr,
-            )
+        if any(any(banned_sym in item for banned_sym in _BANNED_SYMBOLS) for item in command):
+            print_color(f"Tutor disallows keys {_BANNED_SYMBOLS}; rejecting command", Color.MAGENTA)
             return False
         return True
 
@@ -168,7 +175,7 @@ class TaskEngine:
                 * `False` if this task is being restarted; i.e., reset from the task beginning
                 * `None` if this task should continue without restarting
         """
-        print(
+        print_color(
             "-- Bash Tutor Help --\n"
             "When prompted, enter a Bash command on the line following the $ (Bash prompt).\n"
             "You will be prevented from navigating away from the given workspace directory, "
@@ -179,7 +186,8 @@ class TaskEngine:
             "and restart the current attempt\n"
             f"  {TaskEngine.SpecialCommand.SOLUTION} - Get a solution for this task\n"
             f"  {TaskEngine.SpecialCommand.RESTART} - Retry this task from the start\n"
-            f"  {TaskEngine.SpecialCommand.EXIT} - Give up on this task"
+            f"  {TaskEngine.SpecialCommand.EXIT} - Give up on this task",
+            Color.CYAN,
         )
         return None
 
@@ -193,7 +201,7 @@ class TaskEngine:
                 * `False` if this task is being restarted; i.e., reset from the task beginning
                 * `None` if this task should continue without restarting
         """
-        print("Aborting this task...")
+        print_color("Aborting this task...", Color.CYAN)
         return True
 
     def _cmd_hint(self) -> Optional[bool]:
@@ -207,7 +215,10 @@ class TaskEngine:
                 * `None` if this task should continue without restarting
         """
         if self.hint < len(self.task.hints):
-            print(f"Hint {self.hint + 1} / {len(self.task.hints)}:\n{self.task.hints[self.hint]}")
+            print_color(
+                f"Hint {self.hint + 1} / {len(self.task.hints)}:\n{self.task.hints[self.hint]}",
+                Color.CYAN,
+            )
             self.hint += 1
         else:
             return self._cmd_solution()
@@ -224,8 +235,8 @@ class TaskEngine:
                 * `None` if this task should continue without restarting
         """
         print(
-            f"Solution:\nEnter the following commands, in this order:\n"
-            f"  {'\n  '.join(' '.join(command) for command in self.task.solution)}"
+            color_text("Solution:\nEnter the following commands, in this order:\n", Color.CYAN)
+            + f"  {'\n  '.join(' '.join(command) for command in self.task.solution)}"
         )
         self.got_solution = True
         return False
@@ -240,5 +251,5 @@ class TaskEngine:
                 * `False` if this task is being restarted; i.e., reset from the task beginning
                 * `None` if this task should continue without restarting
         """
-        print("Restarting this task...")
+        print_color("Restarting this task...", Color.CYAN)
         return False

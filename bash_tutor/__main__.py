@@ -10,7 +10,7 @@ from typing import Any, Optional
 
 from .task import Task
 from .task_engine import TaskEngine
-from .utils import ENCODING, TASKS_JSON, WORKSPACE_DIR, ExitCode
+from .utils import ENCODING, TASKS_JSON, WORKSPACE_DIR, Color, ExitCode, print_color
 
 
 @dataclass(init=False)
@@ -37,18 +37,16 @@ def main(args: list[str]) -> ExitCode:
     parsed_args = _parse_args(args)
     tasks = _load_tasks(parsed_args.input_json)
     if not tasks:
-        print(
-            f"Error: No tasks could be loaded from JSON file '{parsed_args.input_json}'",
-            file=sys.stderr,
+        print_color(
+            f"Error: No tasks could be loaded from JSON file '{parsed_args.input_json}'", Color.RED
         )
         return ExitCode.BAD_CLI_ARG
     if parsed_args.task is not None:
         if parsed_args.task in tasks:
             _run_task(tasks[parsed_args.task], parsed_args.workspace_dir, parsed_args.task_attempts)
             return ExitCode.SUCCESS
-        print(
-            f"Couldn't find task '{parsed_args.task}' in tasks {tuple(tasks.keys())}",
-            file=sys.stderr,
+        print_color(
+            f"Couldn't find task '{parsed_args.task}' in tasks {tuple(tasks.keys())}", Color.RED
         )
         return ExitCode.BAD_CLI_ARG
     if parsed_args.select_random:
@@ -56,7 +54,7 @@ def main(args: list[str]) -> ExitCode:
         while is_success:
             task = random.choice(list(tasks.values()))
             is_success = _run_task(task, parsed_args.workspace_dir, parsed_args.task_attempts)
-        print("Task aborted or failed; exiting since in 'random' mode")
+        print_color("Task aborted or failed; exiting since in 'random' mode", Color.CYAN)
         return ExitCode.SUCCESS
     successes = 0
     total_attempted = 0
@@ -64,7 +62,7 @@ def main(args: list[str]) -> ExitCode:
         total_attempted += 1
         if _run_task(task, parsed_args.workspace_dir, parsed_args.task_attempts):
             successes += 1
-    print(f"{successes} / {total_attempted} tasks succeeded")
+    print_color(f"{successes} / {total_attempted} tasks succeeded", Color.GREEN)
     return ExitCode.SUCCESS
 
 
@@ -136,7 +134,9 @@ def _load_tasks(tasks_file: Path) -> Optional[dict[str, Task]]:
     try:
         tasks = {name: Task.from_json(name, task) for name, task in tasks_json.items()}
     except (AttributeError, TypeError) as e:
-        print(f"Error: Invalid JSON provided ({e})\nPlease ensure your Tasks JSON is valid")
+        print_color(
+            f"Error: Invalid JSON provided ({e})\nPlease ensure your Tasks JSON is valid", Color.RED
+        )
         return None
     return {name: task for name, task in tasks.items() if task is not None}
 
@@ -156,7 +156,10 @@ def _run_task(task: Task, workspace_dir: Path, max_attempts: Optional[int] = Non
 
     task_engine = TaskEngine(task, workspace_dir)
     is_success = task_engine.run(max_attempts=max_attempts)
-    print("Task completed successfully!" if is_success else "Task failed.")
+    if is_success:
+        print_color("Task completed successfully!", Color.GREEN)
+    else:
+        print_color("Task failed or completed with solution provided.", Color.MAGENTA)
     return is_success
 
 

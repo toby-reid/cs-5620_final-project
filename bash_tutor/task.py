@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from .skill import Skill
-from .utils import CommandResult, FileSystem, run_command
+from .utils import Color, CommandResult, FileSystem, print_color, run_command
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -72,7 +72,7 @@ class Task:
                 }
             return cls(name=name, **json_object)
         except (KeyError, TypeError) as e:
-            print(f"Invalid JSON task provided: {object}\n  ({e})")
+            print_color(f"Invalid task provided (e): {object}", Color.YELLOW)
             return None
 
     def evaluate(self, start_dir: Path) -> Result:
@@ -100,5 +100,4 @@ class Task:
             result.commands = self.solution
         if Task.ResultCheck.FILE_SYSTEM in self.result_checks:
             result.fs = FileSystem.from_fs(start_dir)
-        print(result)
         return result
