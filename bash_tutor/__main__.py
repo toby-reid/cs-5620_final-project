@@ -17,7 +17,6 @@ from .utils import ENCODING, TASKS_JSON, WORKSPACE_DIR, ExitCode
 class _ParsedArgs(argparse.Namespace):
     """A basic dataclass for static type checking purposes."""
 
-    smoke_check: bool
     task: Optional[str]
     input_json: Path
     workspace_dir: Path
@@ -38,13 +37,19 @@ def main(args: list[str]) -> ExitCode:
     parsed_args = _parse_args(args)
     tasks = _load_tasks(parsed_args.input_json)
     if not tasks:
-        print(f"Error: No tasks in JSON file '{parsed_args.input_json}'", file=sys.stderr)
+        print(
+            f"Error: No tasks could be loaded from JSON file '{parsed_args.input_json}'",
+            file=sys.stderr,
+        )
         return ExitCode.BAD_CLI_ARG
     if parsed_args.task is not None:
         if parsed_args.task in tasks:
             _run_task(tasks[parsed_args.task], parsed_args.workspace_dir, parsed_args.task_attempts)
             return ExitCode.SUCCESS
-        print(f"Couldn't find task '{parsed_args.task}' in tasks {tuple(tasks.keys())}", file=sys.stderr)
+        print(
+            f"Couldn't find task '{parsed_args.task}' in tasks {tuple(tasks.keys())}",
+            file=sys.stderr,
+        )
         return ExitCode.BAD_CLI_ARG
     if parsed_args.select_random:
         is_success = True
@@ -78,12 +83,6 @@ def _parse_args(args: list[str]) -> _ParsedArgs:
         description="A proof-of-concept constraint-based Bash tutor.",
         epilog="Created for USU CS-5620, AI in Education (Dr. Seth Poulsen), by Toby Reid.",
     )
-    parser.add_argument(
-        "-c",
-        "--smoke-check",
-        action="store_true",
-        help="Ensures imports and other such functionality are working",
-    )
     parser.add_argument("-t", "--task", help="Specify a particular task to perform")
     parser.add_argument(
         "-i",
@@ -113,8 +112,6 @@ def _parse_args(args: list[str]) -> _ParsedArgs:
         dest="select_random",
     )
     parsed_args = parser.parse_args(args, namespace=_ParsedArgs())
-    if parsed_args.smoke_check:
-        parser.exit(ExitCode.SUCCESS, "Exiting after smoke check")
     if not parsed_args.input_json.is_file():
         parser.error(f"Given input JSON file '{parsed_args.input_json}' is not a file")
     if not parsed_args.workspace_dir.is_dir():
@@ -122,7 +119,7 @@ def _parse_args(args: list[str]) -> _ParsedArgs:
     return parsed_args
 
 
-def _load_tasks(tasks_file: Path) -> dict[str, Task]:
+def _load_tasks(tasks_file: Path) -> Optional[dict[str, Task]]:
     """
     Loads tasks from a given JSON file.
 
@@ -136,7 +133,11 @@ def _load_tasks(tasks_file: Path) -> dict[str, Task]:
     with tasks_file.open("r", encoding=ENCODING) as file:
         # Again, skip validation for the sake of time
         tasks_json: dict[str, dict[str, Any]] = json.load(file)
-    tasks = {name: Task.from_json(name, task) for name, task in tasks_json.items()}
+    try:
+        tasks = {name: Task.from_json(name, task) for name, task in tasks_json.items()}
+    except (AttributeError, TypeError) as e:
+        print(f"Error: Invalid JSON provided ({e})\nPlease ensure your Tasks JSON is valid")
+        return None
     return {name: task for name, task in tasks.items() if task is not None}
 
 

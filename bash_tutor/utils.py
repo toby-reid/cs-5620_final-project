@@ -115,12 +115,13 @@ def run_command(command: Sequence[str | Path], cwd: Optional[Path | str] = None)
         result (CommandResult): The result from running the given command
     """
     result = subprocess.run(
-        list(command) + [";", "pwd"], capture_output=True, cwd=cwd, check=False, text=True
+        list(command) + [";", "echo", ";", "pwd"], capture_output=True, cwd=cwd, check=False, text=True
     )
+    stdout_split = result.stdout.split('\n')
     return CommandResult(
         command=command,
-        new_cwd=Path(result.stdout[-1]),
-        stdout=result.stdout[:-1],
+        new_cwd=Path(stdout_split[-1]),
+        stdout='\n'.join(stdout_split[:-1]),
         stderr=result.stderr,
         success=(result.returncode == ExitCode.SUCCESS),
     )

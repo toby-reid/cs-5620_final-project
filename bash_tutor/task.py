@@ -1,13 +1,13 @@
 """Contains the structure for an individual task."""
 
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum, auto
 from pathlib import Path
 from typing import Any, Optional
 
 from .skill import Skill
-from .utils import ENCODING, CommandResult, FileSystem, run_command
+from .utils import CommandResult, FileSystem, run_command
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -45,7 +45,7 @@ class Task:
     prompt: str
     hints: list[str]
     solution: list[list[str]]
-    result_checks: set[ResultCheck] = set(ResultCheck)
+    result_checks: set[ResultCheck] = field(default_factory=lambda: set(Task.ResultCheck))
     skills: Optional[set[Skill]] = None  # will actually be string, not enum
     command_limit: Optional[int] = None
 
