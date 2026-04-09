@@ -66,8 +66,10 @@ class TaskEngine:
         self.cwd = self.start_dir
         reset_workspace(self.start_dir)
         self.attempt_commands = []
-        success = False
-        while not success:
+        while (
+            self.task.command_limit is None
+            or self.task.command_limit < len(self.attempt_commands)
+        ):
             print(self.cwd)
             # Don't worry about vetting input
             command = input("$ ").split()

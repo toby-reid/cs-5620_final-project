@@ -13,6 +13,16 @@ from .utils import ENCODING, CommandResult, FileSystem, run_command
 class Task:
     """Structure for an individual task."""
 
+    class JsonKey(StrEnum):
+        """Represents a valid JSON key, which is directly mapped into the Task object."""
+        NAME = auto()
+        PROMPT = auto()
+        HINTS = auto()
+        SOLUTION = auto()
+        RESULT_CHECKS = auto()
+        SKILLS = auto()
+        COMMAND_LIMIT = auto()
+
     class ResultCheck(StrEnum):
         """Represents one of the checks that can be made to ensure a solution is correct."""
         STDOUT = auto()
