@@ -23,8 +23,7 @@ HASH_ALG = "sha256"
 class ExitCode(IntEnum):
     """Command-line exit code."""
     SUCCESS = 0
-    FAIL_CODE = 1
-    FAIL_USER = 2
+    BAD_CLI_ARG = 1
 
 
 @dataclass(frozen=True, slots=True, eq=True)

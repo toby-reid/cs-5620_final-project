@@ -1,5 +1,6 @@
 """Contains the structure for an individual task."""
 
+from copy import deepcopy
 from dataclasses import dataclass
 from enum import StrEnum, auto
 from pathlib import Path
@@ -15,7 +16,7 @@ class Task:
 
     class JsonKey(StrEnum):
         """Represents a valid JSON key, which is directly mapped into the Task object."""
-        NAME = auto()
+
         PROMPT = auto()
         HINTS = auto()
         SOLUTION = auto()
@@ -25,6 +26,7 @@ class Task:
 
     class ResultCheck(StrEnum):
         """Represents one of the checks that can be made to ensure a solution is correct."""
+
         STDOUT = auto()
         STDERR = auto()
         EXACT_COMMAND = auto()
@@ -33,6 +35,7 @@ class Task:
     @dataclass(slots=True, kw_only=True)
     class Result:
         """Represents the desired results, if that thing should be checked."""
+
         stdout: Optional[str] = None
         stderr: Optional[str] = None
         commands: Optional[list[list[str]]] = None
@@ -42,12 +45,12 @@ class Task:
     prompt: str
     hints: list[str]
     solution: list[list[str]]
-    result_checks: list[ResultCheck] = list(ResultCheck)  # will be str, not enum
-    skills: Optional[list[Skill]] = None  # will actually be string, not enum
+    result_checks: set[ResultCheck] = set(ResultCheck)
+    skills: Optional[set[Skill]] = None  # will actually be string, not enum
     command_limit: Optional[int] = None
 
     @classmethod
-    def from_json[TaskT](cls: type[TaskT], object: dict[str, Any]) -> Optional[TaskT]:
+    def from_json(cls, name: str, object: dict[str, Any]) -> Optional["Task"]:
         """
         Attempts to generate this object from a JSON-type object.
 
@@ -55,12 +58,20 @@ class Task:
             object (dict[str, Any]): The JSON-like object whose keys match this class's keys
 
         Returns:
-            instance (TaskT | None): An instance of this class, if the input JSON is valid
+            instance (Task | None): An instance of this class, if the input JSON is valid
         """
+        json_object = deepcopy(object)
         try:
-            # Note: this simplistic method will keep strings/ints, not convert to enum
-            return cls(**object)
-        except TypeError as e:
+            if cls.JsonKey.RESULT_CHECKS in json_object:
+                json_object[cls.JsonKey.RESULT_CHECKS] = {
+                    cls.ResultCheck(check) for check in json_object[cls.JsonKey.RESULT_CHECKS]
+                }
+            if cls.JsonKey.SKILLS in json_object and json_object[cls.JsonKey.SKILLS] is not None:
+                json_object[cls.JsonKey.SKILLS] = {
+                    Skill(skill) for skill in json_object[cls.JsonKey.SKILLS]
+                }
+            return cls(name=name, **json_object)
+        except (KeyError, TypeError) as e:
             print(f"Invalid JSON task provided: {object}\n  ({e})")
             return None
 
