@@ -10,7 +10,7 @@ from .task import Task
 from .utils import Color, FileSystem, color_text, print_color, reset_workspace, run_command
 
 
-_BANNED_SYMBOLS = ("$", "!", ";")
+_BANNED_SYMBOLS = ("$", "!", ";", "&")
 
 
 @dataclass(slots=True)
@@ -24,6 +24,7 @@ class TaskEngine:
         HELP = auto()
         HINT = auto()
         SOLUTION = auto()
+        RESET = auto()
         RESTART = auto()
         EXIT = auto()
 
@@ -96,6 +97,7 @@ class TaskEngine:
                     TaskEngine.SpecialCommand.HELP: self._cmd_help,
                     TaskEngine.SpecialCommand.HINT: self._cmd_hint,
                     TaskEngine.SpecialCommand.SOLUTION: self._cmd_solution,
+                    TaskEngine.SpecialCommand.RESET: self._cmd_restart,
                     TaskEngine.SpecialCommand.RESTART: self._cmd_restart,
                     TaskEngine.SpecialCommand.EXIT: self._cmd_exit,
                 }[TaskEngine.SpecialCommand(command[0])]()
@@ -206,7 +208,7 @@ class TaskEngine:
             f"  {TaskEngine.SpecialCommand.HELP} - Displays this help message\n"
             f"  {TaskEngine.SpecialCommand.HINT} - Get the next hint for this task\n"
             f"  {TaskEngine.SpecialCommand.SOLUTION} - Get a solution for this task\n"
-            f"  {TaskEngine.SpecialCommand.RESTART} - Retry this task from the start\n"
+            f"  {TaskEngine.SpecialCommand.RESET} - Retry this task from the start\n"
             f"  {TaskEngine.SpecialCommand.EXIT} - Give up on this task",
             Color.CYAN,
         )
