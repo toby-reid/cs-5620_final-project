@@ -1,5 +1,6 @@
 """Common utilities for this module."""
 
+import glob
 import hashlib
 import subprocess
 from dataclasses import dataclass, field
@@ -98,6 +99,10 @@ class FileSystem:
         if self.dir_contents is not None:
             if other.dir_contents is None:
                 return f"Expected dir {self.full_path}, but got file"
+            if not self.dir_contents:
+                if other.dir_contents:
+                    return f"Expected empty dir {self.full_path}, but dir had contents"
+                return None
             for name, fs in self.dir_contents.items():
                 diff = fs.find_diff(other.dir_contents.get(name))
                 if diff is not None:
@@ -156,7 +161,7 @@ def run_command(command: Sequence[str | Path], cwd: Optional[Path | str] = None)
     """
     cwd_key = ":CWD:"
     result = subprocess.run(
-        f'{' '.join(f'"{segment}"' for segment in command)}; echo {cwd_key}"$(pwd)"',
+        f'{' '.join(f'{segment}' for segment in command)}; echo {cwd_key}"$(pwd)"',
         shell=True,
         capture_output=True,
         cwd=cwd,

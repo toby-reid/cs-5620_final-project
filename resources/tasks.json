@@ -13,5 +13,20 @@
     "result_checks": [
       "stdout"
     ]
+  },
+  "remove-dir-contents": {
+    "prompt": "Remove the contents of 'directory-a', but not the folder itself.",
+    "hints": [
+      "This is a placeholder (1)",
+      "This is a placeholder (2)",
+      "This is a placeholder (3)"
+    ],
+    "solution": [
+      ["cd", "directory-a"],
+      ["rm", "file-1.txt", "file-2.txt", "file-3.txt"]
+    ],
+    "result_checks": [
+      "file_system"
+    ]
   }
 }

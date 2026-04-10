@@ -53,8 +53,10 @@ class TaskEngine:
         while max_attempts is None or attempts < max_attempts:
             result = self._run()
             if result is not None:
+                reset_workspace(self.start_dir)
                 return result
             attempts += 1
+        reset_workspace(self.start_dir)
         return False
 
     def _run(self) -> Optional[bool]:
@@ -90,6 +92,7 @@ class TaskEngine:
             command = input("$ ").split()
             if len(command) == 1 and command[0] in TaskEngine.SpecialCommand:
                 exit_status = {
+                    TaskEngine.SpecialCommand.TASK: self._cmd_task,
                     TaskEngine.SpecialCommand.HELP: self._cmd_help,
                     TaskEngine.SpecialCommand.HINT: self._cmd_hint,
                     TaskEngine.SpecialCommand.SOLUTION: self._cmd_solution,
@@ -201,8 +204,7 @@ class TaskEngine:
             "In addition to standard Bash commands, the following commands are available:\n"
             f"  {TaskEngine.SpecialCommand.TASK} - Get task details\n"
             f"  {TaskEngine.SpecialCommand.HELP} - Displays this help message\n"
-            f"  {TaskEngine.SpecialCommand.HINT} - Get the next hint for this task, "
-            "and restart the current attempt\n"
+            f"  {TaskEngine.SpecialCommand.HINT} - Get the next hint for this task\n"
             f"  {TaskEngine.SpecialCommand.SOLUTION} - Get a solution for this task\n"
             f"  {TaskEngine.SpecialCommand.RESTART} - Retry this task from the start\n"
             f"  {TaskEngine.SpecialCommand.EXIT} - Give up on this task",
@@ -241,7 +243,7 @@ class TaskEngine:
             self.hint += 1
         else:
             return self._cmd_solution()
-        return False
+        return None
 
     def _cmd_solution(self) -> Optional[bool]:
         """
@@ -258,7 +260,7 @@ class TaskEngine:
             + f"  {'\n  '.join(' '.join(command) for command in self.task.solution)}"
         )
         self.got_solution = True
-        return False
+        return self._cmd_restart()
 
     def _cmd_restart(self) -> Optional[bool]:
         """
